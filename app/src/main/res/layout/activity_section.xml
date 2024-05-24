@@ -1,38 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorBackground"
-    tools:context=".MainActivity"
+    tools:context=".SectionActivity"
     android:padding="20dp">
 
     <TextView
-        android:id="@+id/mainTitleText"
+        android:id="@+id/sectionTitleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="30dp"
-        android:text="Andar TODO Application"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/colorText"
         android:textSize="20dp"
         android:textStyle="bold"
+        android:drawableRight="@drawable/ic_settings_white"
+        android:drawablePadding="20dp"
         />
 
+    <EditText
+        android:id="@+id/searchEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sectionTitleText"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:hint="Search..."
+        android:drawableEnd="@drawable/ic_search_white"
+        android:drawablePadding="10dp"
+        android:padding="12dp"
+        android:background="@drawable/search_background"
+        android:textColor="@color/colorText"
+        android:textColorHint="@color/colorHint"
+        android:inputType="text" />
+
     <LinearLayout
-        android:id="@+id/sectionButtonLayout"
+        android:id="@+id/taskLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:layout_below="@id/mainTitleText"
+        android:layout_below="@id/searchEditText"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="30dp">
+
     </LinearLayout>
 
-
     <Button
-        android:id="@+id/buttonAddNewSection"
+        android:id="@+id/buttonAddNewTask"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -42,7 +60,7 @@
         android:drawableLeft="@drawable/ic_add_white"
         android:paddingStart="50dp"
         android:paddingEnd="50dp"
-        android:text="Add new section"
+        android:text="Add new task"
         android:textColor="@color/colorText"
         android:textSize="16sp"
         />

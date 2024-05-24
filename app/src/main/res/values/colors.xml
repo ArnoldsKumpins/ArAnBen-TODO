@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#0A38D8</color> <!-- Blue -->
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorSuccess">#278E44</color> <!-- Green -->
+    <color name="colorText">#FFFFFF</color>
+    <color name="colorHint">#949494</color>
+    <color name="colorBackground">#1C1C1C</color>
+    <color name="colorDialog">#767676</color>
 </resources>
