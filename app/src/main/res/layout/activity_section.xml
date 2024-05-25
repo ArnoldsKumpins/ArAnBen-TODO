@@ -7,25 +7,60 @@
     tools:context=".SectionActivity"
     android:padding="20dp">
 
-    <TextView
-        android:id="@+id/sectionTitleText"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/taskTitleLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="30dp"
-        android:textColor="@color/colorText"
-        android:textSize="20dp"
-        android:textStyle="bold"
-        android:drawableRight="@drawable/ic_settings_white"
-        android:drawablePadding="20dp"
-        />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        >
+
+
+        <!-- Back Button -->
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:background="#00FFFFFF"
+            android:padding="20dp"
+            android:contentDescription="backToSections"
+            android:src="@drawable/ic_back_white" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/sectionTitleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/colorText"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="30dp"
+            />
+
+        <!-- Settings Icon -->
+        <ImageButton
+            android:id="@+id/settingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_settings_white"
+            android:contentDescription="editSection"
+            android:background="#00FFFFFF"
+            android:padding="20dp"
+            android:layout_gravity="center_vertical"
+            />
+    </LinearLayout>
+
+
 
     <EditText
         android:id="@+id/searchEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/sectionTitleText"
+        android:layout_below="@id/taskTitleLayout"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
         android:hint="Search..."

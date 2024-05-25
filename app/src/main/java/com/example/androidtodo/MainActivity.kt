@@ -17,6 +17,7 @@ import android.widget.ImageView
 import android.util.Log
 import android.text.Editable
 import android.text.TextWatcher
+import android.widget.ImageButton
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -87,15 +88,68 @@ class SectionActivity : AppCompatActivity() {
         val sectionName = intent.getStringExtra("SECTION_NAME")
 
         // Set the section name to the TextView
-        val textViewDetail = findViewById<TextView>(R.id.sectionTitleText)
-        textViewDetail.text = sectionName
+        val sectionTitleView = findViewById<TextView>(R.id.sectionTitleText)
+        sectionTitleView.text = sectionName
 
         val addTaskButton = findViewById<Button>(R.id.buttonAddNewTask)
         addTaskButton.setOnClickListener {
             showAddTaskDialog()
         }
 
-        val editSectionButton = textViewDetail.findViewById<ImageView>(R.id.imageDelete)
+        val editSectionButton = findViewById<ImageButton>(R.id.settingsButton)
+        editSectionButton.setOnClickListener{
+            editSectionName(sectionTitleView ,sectionName)
+        }
+
+        val backToSectionButton = findViewById<ImageButton>(R.id.backButton)
+        backToSectionButton.setOnClickListener{
+            finish()
+        }
+
+    }
+
+    private fun editSectionName(sectionView: View, originalSectionName: String?) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Edit Section Name")
+
+        val input = EditText(this)
+        input.inputType = InputType.TYPE_CLASS_TEXT
+        input.setText(originalSectionName)
+        builder.setView(input)
+
+        builder.setPositiveButton("Apply") { dialog, which ->
+            // Update the section name with new value
+            val newSectionName = input.text.toString()
+            val textViewSectionName = sectionView.findViewById<TextView>(R.id.sectionTitleText)
+            textViewSectionName.text = newSectionName
+        }
+
+        builder.setNegativeButton("Delete") { dialog, which ->
+            // Handle the delete action: remove the section view or mark it as deleted
+            dialog.cancel()
+            showDeleteConfirmationDialog(sectionView, originalSectionName)
+        }
+
+        builder.show()
+    }
+
+    private fun showDeleteConfirmationDialog(sectionView: View, sectionName: String?) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Confirm Delete")
+        builder.setMessage("Are you sure you want to delete the section '$sectionName'? This action cannot be undone.")
+
+        builder.setPositiveButton("Delete") { dialog, which ->
+            // Code to delete the section
+            dialog.cancel()
+            finish()
+        }
+
+        builder.setNegativeButton("Cancel") { dialog, which ->
+            dialog.dismiss()
+        }
+
+        val dialog = builder.create()
+        dialog.show()
     }
 
     private fun showAddTaskDialog() {
