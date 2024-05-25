@@ -20,16 +20,35 @@ import android.text.TextWatcher
 import android.widget.ImageButton
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.example.androidtodo.datatypes.Section
+import com.example.androidtodo.database.SectionDAO
+import androidx.lifecycle.lifecycleScope
+import com.example.androidtodo.database.SectionDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var sectionDao: SectionDAO
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val db = SectionDatabase(applicationContext)
+        sectionDao = db.getSectionDao()
+        loadSections()
 
         val addSectionButton = findViewById<Button>(R.id.buttonAddNewSection)
         addSectionButton.setOnClickListener {
             showAddSectionDialog()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh data here
+        loadSections()  // Assuming this method re-fetches the data from the database or server
     }
 
     private fun showAddSectionDialog() {
@@ -52,63 +71,104 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addSection(sectionName: String) {
-        val layout = findViewById<LinearLayout>(R.id.sectionButtonLayout)
-
-        // Create and add the separator view if not the first button
-        if (layout.childCount > 0) {
-            val separator = View(this).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    resources.getDimensionPixelSize(R.dimen.section_margin_top)
-                )
-            }
-            layout.addView(separator)
+        lifecycleScope.launch {
+            sectionDao.createSection(Section(sectionTitle = sectionName)) // Save to DB
         }
-
-        // Create button using style
-        val button = Button(this, null, 0, R.style.SectionButtonStyle)
-        button.text = sectionName
-
-        button.setOnClickListener {
-            val intent = Intent(this, SectionActivity::class.java)
-            intent.putExtra("SECTION_NAME", sectionName)  // Pass the section name to the new Activity
-            startActivity(intent)
-        }
-
-        layout.addView(button)
     }
+    private fun loadSections() {
+        val layout = findViewById<LinearLayout>(R.id.sectionButtonLayout)
+        layout.removeAllViews() // Clear existing buttons
+
+        lifecycleScope.launch {
+            // Remove old observers if set
+            sectionDao.getSections().removeObservers(this@MainActivity)
+            sectionDao.getSections().observe(this@MainActivity) { sections ->
+                sections.forEach { section ->
+                    addSectionToLayout(layout, section)
+                }
+            }
+        }
+    }
+
+    private fun addSectionToLayout(layout: LinearLayout, section: Section) {
+        if (layout.findViewWithTag<Button>(section.id.toString()) == null) {
+            val button = Button(this, null, 0, R.style.SectionButtonStyle)
+            button.tag = section.id.toString() // Use section ID as the tag
+            button.text = section.sectionTitle
+            button.setOnClickListener {
+                val intent = Intent(this, SectionActivity::class.java)
+                intent.putExtra("SECTION_ID", section.id)
+                Log.d("MainActivity", "Section ID: ${section.id}")
+                startActivity(intent)
+            }
+
+            // Add button to the layout
+            layout.addView(button)
+
+            // Include spacer by inflating it from the XML
+            val inflater = layoutInflater
+            val spacer = inflater.inflate(R.layout.spacer_20dp, layout, false)
+            layout.addView(spacer)
+        }
+    }
+
 }
 
 class SectionActivity : AppCompatActivity() {
+    private lateinit var dao: SectionDAO
+    private lateinit var sectionTitleView: TextView
+    private var sectionName: String? = null
+    private var sectionId: Int = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_section)
 
-        // Get the section name from the Intent
-        val sectionName = intent.getStringExtra("SECTION_NAME")
+        val db = SectionDatabase(applicationContext)
+        dao = db.getSectionDao()
 
-        // Set the section name to the TextView
-        val sectionTitleView = findViewById<TextView>(R.id.sectionTitleText)
-        sectionTitleView.text = sectionName
+        sectionTitleView = findViewById<TextView>(R.id.sectionTitleText)
+        sectionId = intent.getIntExtra("SECTION_ID", -1)
+        if (sectionId == -1) {
+            // Handle the error: ID not found
+            finish()
+            return
+        }
 
+        // Fetch section name asynchronously
+        CoroutineScope(Dispatchers.IO).launch {
+            sectionName = dao.getSectionById(sectionId)?.sectionTitle
+            withContext(Dispatchers.Main) {
+                // Update the UI on the main thread
+                sectionTitleView.text = sectionName ?: "Unknown Section"
+            }
+        }
+
+        setupButtons()
+    }
+
+    private fun setupButtons() {
         val addTaskButton = findViewById<Button>(R.id.buttonAddNewTask)
         addTaskButton.setOnClickListener {
-            showAddTaskDialog()
+            showAddTaskDialog()  // Show dialog to add a new task
         }
 
         val editSectionButton = findViewById<ImageButton>(R.id.settingsButton)
-        editSectionButton.setOnClickListener{
-            editSectionName(sectionTitleView ,sectionName)
+        editSectionButton.setOnClickListener {
+            sectionName?.let { name ->
+                editSection(sectionTitleView, name, sectionId)  // Pass sectionId as needed for database operations
+            }
         }
 
         val backToSectionButton = findViewById<ImageButton>(R.id.backButton)
-        backToSectionButton.setOnClickListener{
-            finish()
+        backToSectionButton.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()  // Go back to the previous Activity
         }
-
     }
 
-    private fun editSectionName(sectionView: View, originalSectionName: String?) {
+    private fun editSection(sectionView: View, originalSectionName: String?, sectionId: Int) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Edit Section Name")
 
@@ -118,30 +178,38 @@ class SectionActivity : AppCompatActivity() {
         builder.setView(input)
 
         builder.setPositiveButton("Apply") { dialog, which ->
-            // Update the section name with new value
             val newSectionName = input.text.toString()
             val textViewSectionName = sectionView.findViewById<TextView>(R.id.sectionTitleText)
             textViewSectionName.text = newSectionName
+
+            // Asynchronously update the database
+            CoroutineScope(Dispatchers.IO).launch {
+                dao.updateSectionTitle(sectionId, newSectionName)
+            }
         }
 
         builder.setNegativeButton("Delete") { dialog, which ->
-            // Handle the delete action: remove the section view or mark it as deleted
             dialog.cancel()
-            showDeleteConfirmationDialog(sectionView, originalSectionName)
+            showDeleteConfirmationDialog(sectionView, originalSectionName, sectionId)
         }
 
         builder.show()
     }
 
-    private fun showDeleteConfirmationDialog(sectionView: View, sectionName: String?) {
+    private fun showDeleteConfirmationDialog(sectionView: View, sectionName: String?, sectionId: Int) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Confirm Delete")
         builder.setMessage("Are you sure you want to delete the section '$sectionName'? This action cannot be undone.")
 
         builder.setPositiveButton("Delete") { dialog, which ->
-            // Code to delete the section
-            dialog.cancel()
-            finish()
+            // Asynchronously delete the section from the database
+            lifecycleScope.launch {
+                dao.deleteSectionById(sectionId)  // Assuming you have the section ID
+                // After deletion, you might want to update the UI or return to the previous screen
+                withContext(Dispatchers.Main) {
+                    finish()  // Closes the current activity, should return to the previous activity which needs to refresh its data
+                }
+            }
         }
 
         builder.setNegativeButton("Cancel") { dialog, which ->
