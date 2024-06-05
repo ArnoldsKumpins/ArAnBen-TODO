@@ -19,16 +19,15 @@
         android:textStyle="bold"
         />
 
-    <LinearLayout
-        android:id="@+id/sectionButtonLayout"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/sectionRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
+        android:layout_height="match_parent"
+        android:layout_above="@id/buttonAddNewSection"
         android:layout_below="@id/mainTitleText"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp">
-    </LinearLayout>
+        android:layout_marginTop="20dp"
+        android:orientation="vertical" />
 
 
     <Button
@@ -38,6 +37,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/rounded_button_green"
         android:drawableLeft="@drawable/ic_add_white"
         android:paddingStart="50dp"

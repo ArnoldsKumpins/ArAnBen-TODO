@@ -72,17 +72,16 @@
         android:textColorHint="@color/colorHint"
         android:inputType="text" />
 
-    <LinearLayout
-        android:id="@+id/taskLayout"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/taskRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
         android:layout_below="@id/searchEditText"
+        android:layout_above="@id/buttonAddNewTask"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp">
-
-    </LinearLayout>
+        android:layout_marginTop="30dp"
+        />
 
     <Button
         android:id="@+id/buttonAddNewTask"
@@ -91,6 +90,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
+        android:layout_marginTop="30dp"
         android:background="@drawable/rounded_button_green"
         android:drawableLeft="@drawable/ic_add_white"
         android:paddingStart="50dp"

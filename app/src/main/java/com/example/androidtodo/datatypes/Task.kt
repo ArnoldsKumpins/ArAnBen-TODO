@@ -1,8 +1,10 @@
 package com.example.androidtodo.datatypes
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
+import kotlinx.parcelize.Parcelize
 import org.joda.time.DateTime
 
 @Entity(
@@ -12,16 +14,17 @@ import org.joda.time.DateTime
             entity = Section::class,
             parentColumns = ["id"],
             childColumns = ["sectionId"],
-            onDelete = ForeignKey.CASCADE  // Specifies what action to take on delete
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )
+@Parcelize
 data class Task(
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val sectionId: Int,
     val taskDescription: String,
     val taskDueDate: String,
-    val createdAt: DateTime = DateTime.now(),
-    val editedAt: DateTime = DateTime.now(),
-    val taskDone: Boolean = false
-)
+    val createdAt: String = DateTime.now().toString(),
+    val editedAt: String = DateTime.now().toString(),
+    var taskDone: Boolean = false
+) : Parcelable
