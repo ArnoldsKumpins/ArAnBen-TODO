@@ -8,7 +8,7 @@
     android:paddingBottom="20dp"
     >
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/sectionButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -16,6 +16,7 @@
         android:background="@drawable/rounded_button"
         android:text="Section Title"
         android:textSize="16sp"
+        android:textColor="@color/colorText"
         />
 
 </LinearLayout>

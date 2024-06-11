@@ -1,3 +1,11 @@
+/*
+   * Android CRUD TODO Application
+   *
+   * Created BY:
+   *    Arnolds Kumpiņš 221RDB157
+   *    Andris Martinsons 221RDB203
+*/
+
 package com.example.androidtodo
 
 import androidx.appcompat.app.AppCompatActivity
@@ -23,17 +31,16 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import com.example.androidtodo.datatypes.Section
 import com.example.androidtodo.datatypes.Task
-import com.example.androidtodo.database.SectionDAO
+import com.example.androidtodo.database.DbDAO
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.androidtodo.database.SectionDatabase
+import com.example.androidtodo.database.CrudDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import android.os.Handler
-import android.os.Looper
+import org.joda.time.DateTime
 
 class SectionAdapter(private val context: Context, private val sections: List<Section>) : RecyclerView.Adapter<SectionAdapter.SectionViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
@@ -58,7 +65,7 @@ class SectionAdapter(private val context: Context, private val sections: List<Se
 
             sectionButton.setOnClickListener {
                 Log.d("SectionAdapter", "Clicked on section: ${section.sectionTitle}, ID: ${section.id}")
-                val intent = Intent(context, SectionActivity::class.java)
+                val intent = Intent(context, TaskActivity::class.java)
                 intent.putExtra("SECTION_ID", section.id)
                 context.startActivity(intent)
             }
@@ -68,7 +75,8 @@ class SectionAdapter(private val context: Context, private val sections: List<Se
 
 class TaskAdapter(private val context: Context, private var tasks: List<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
-    private val dao = SectionDatabase(context).getSectionDao()
+    private val dao = CrudDatabase(context).getSectionDao()
+    private var filteredTasks: List<Task> = tasks
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.task_item, parent, false)
@@ -76,16 +84,28 @@ class TaskAdapter(private val context: Context, private var tasks: List<Task>) :
     }
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
-        val task = tasks[position]
+        val task = filteredTasks[position]
         holder.bind(task)
     }
 
     override fun getItemCount(): Int {
-        return tasks.size
+        return filteredTasks.size
     }
 
     fun updateTasks(newTasks: List<Task>) {
         tasks = newTasks
+        filteredTasks = newTasks
+        notifyDataSetChanged()
+    }
+
+    fun filterTasks(query: String) {
+        filteredTasks = if (query.isEmpty()) {
+            tasks
+        } else {
+            tasks.filter { task ->
+                task.taskDescription.contains(query, ignoreCase = true)
+            }
+        }
         notifyDataSetChanged()
     }
 
@@ -109,25 +129,36 @@ class TaskAdapter(private val context: Context, private var tasks: List<Task>) :
 
 
             editTaskButton.setOnClickListener {
-                if (context is SectionActivity) {
+                if (context is TaskActivity) {
                     context.editTask(task)
                 }
             }
 
             deleteTaskButton.setOnClickListener {
-                if (context is SectionActivity) {
+                if (context is TaskActivity) {
                     context.showDeleteTaskConfirmationDialog(itemView, task)
                 }
             }
 
+            if (task.taskDone) {
+                taskDescriptionTextView.paintFlags = taskDescriptionTextView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                taskDescriptionTextView.alpha = 0.5f
+            } else {
+                taskDescriptionTextView.paintFlags = taskDescriptionTextView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                taskDescriptionTextView.alpha = 1.0f
+            }
+
             taskDoneCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 task.taskDone = isChecked
+                task.editedAt = DateTime.now().toString()
                 updateTaskDoneStatus(task)
 
                 if (isChecked) {
                     taskDescriptionTextView.paintFlags = taskDescriptionTextView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                    taskDescriptionTextView.alpha = 0.5f
                 } else {
                     taskDescriptionTextView.paintFlags = taskDescriptionTextView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                    taskDescriptionTextView.alpha = 1.0f
                 }
             }
         }
@@ -136,7 +167,7 @@ class TaskAdapter(private val context: Context, private var tasks: List<Task>) :
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var sectionDao: SectionDAO
+    private lateinit var sectionDao: DbDAO
     private lateinit var sectionAdapter: SectionAdapter
     private val sections = mutableListOf<Section>()
 
@@ -144,7 +175,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val db = SectionDatabase(applicationContext)
+        val db = CrudDatabase(applicationContext)
         sectionDao = db.getSectionDao()
 
         val recyclerView = findViewById<RecyclerView>(R.id.sectionRecyclerView)
@@ -202,8 +233,8 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-class SectionActivity : AppCompatActivity() {
-    private lateinit var dao: SectionDAO
+class TaskActivity : AppCompatActivity() {
+    private lateinit var dao: DbDAO
     private lateinit var taskAdapter: TaskAdapter
     private val tasks = mutableListOf<Task>()
     private lateinit var sectionTitleView: TextView
@@ -212,11 +243,12 @@ class SectionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_section)
+        setContentView(R.layout.activity_tasks)
 
-        val db = SectionDatabase(applicationContext)
+        val db = CrudDatabase(applicationContext)
         dao = db.getSectionDao()
 
+        val searchBar = findViewById<EditText>(R.id.search_bar)
         val recyclerView = findViewById<RecyclerView>(R.id.taskRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         taskAdapter = TaskAdapter(this, tasks)
@@ -239,11 +271,22 @@ class SectionActivity : AppCompatActivity() {
         }
 
         setupButtons()
+
+        searchBar.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                val query = s.toString()
+                taskAdapter.filterTasks(query)
+            }
+        })
     }
 
     private fun loadTasks() {
         lifecycleScope.launch {
-            dao.getTasksForSection(sectionId).observe(this@SectionActivity) { updatedTasks ->
+            dao.getTasksForSection(sectionId).observe(this@TaskActivity) { updatedTasks ->
                 tasks.clear()
                 tasks.addAll(updatedTasks)
                 taskAdapter.updateTasks(updatedTasks)
@@ -379,6 +422,12 @@ class SectionActivity : AppCompatActivity() {
         return dateFormats.any { format ->
             try {
                 format.isLenient = false
+
+                val expectedLength = format.toPattern().replace("/", "").length
+                if (date.replace("/", "").length != expectedLength) {
+                    return@any false
+                }
+
                 format.parse(date)
                 true
             } catch (e: Exception) {
@@ -389,7 +438,7 @@ class SectionActivity : AppCompatActivity() {
 
     private fun addTask(taskDescription: String, taskDueDate: String, sectionId: Int) {
         lifecycleScope.launch {
-            dao.createTask(Task(taskDescription = taskDescription, taskDueDate = taskDueDate, sectionId = sectionId))
+            dao.createTask(Task(taskDescription = taskDescription, taskDueDate = taskDueDate, createdAt = DateTime.now().toString(),sectionId = sectionId))
             loadTasks()
         }
     }
@@ -406,22 +455,55 @@ class SectionActivity : AppCompatActivity() {
         inputDueDate.setText(task.taskDueDate)
         builder.setView(dialogView)
 
-        builder.setPositiveButton("Save") { dialog, _ ->
-            val newDescription = inputDescription.text.toString()
-            val newDueDate = inputDueDate.text.toString()
-
-            lifecycleScope.launch {
-                dao.updateTask(Task(task.id, task.sectionId, newDescription, newDueDate))
-                loadTasks()
-            }
-        }
-
+        builder.setPositiveButton("Save", null)
         builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.cancel()
         }
 
-        builder.show()
+        val dialog = builder.create()
+        dialog.show()
+
+        val saveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+        saveButton.isEnabled = false
+
+        val initialDate = inputDueDate.text.toString()
+        if (isValidDate(initialDate)) {
+            saveButton.isEnabled = true
+        }
+
+        inputDueDate.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                val dateText = inputDueDate.text.toString()
+                if (isValidDate(dateText)) {
+                    inputDueDate.error = null
+                    saveButton.isEnabled = true
+                } else {
+                    inputDueDate.error = "Invalid date format"
+                    saveButton.isEnabled = false
+                }
+            }
+        })
+
+        saveButton.setOnClickListener {
+            val newDescription = inputDescription.text.toString()
+            val newDueDate = inputDueDate.text.toString()
+
+            if (isValidDate(newDueDate)) {
+                lifecycleScope.launch {
+                    dao.updateTask1(newDescription, newDueDate, DateTime.now().toString(), task.id)
+                    loadTasks()
+                    dialog.dismiss()
+                }
+            } else {
+                inputDueDate.error = "Invalid date format"
+            }
+        }
     }
+
 
     fun showDeleteTaskConfirmationDialog(taskView: View, task: Task) {
         val builder = AlertDialog.Builder(this)

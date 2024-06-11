@@ -24,7 +24,7 @@ data class Task(
     val sectionId: Int,
     val taskDescription: String,
     val taskDueDate: String,
-    val createdAt: String = DateTime.now().toString(),
-    val editedAt: String = DateTime.now().toString(),
+    val createdAt: String,
+    var editedAt: String = DateTime.now().toString(),
     var taskDone: Boolean = false
 ) : Parcelable

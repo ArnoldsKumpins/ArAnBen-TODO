@@ -9,7 +9,7 @@
 
     <CheckBox
         android:id="@+id/taskDoneCheckBox"
-        android:layout_width="wrap_content"
+        android:layout_width="20dp"
         android:layout_height="wrap_content"
         android:buttonTint="@color/colorText"
         android:layout_gravity="center_vertical"/>

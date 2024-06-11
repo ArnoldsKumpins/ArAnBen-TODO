@@ -8,13 +8,13 @@ import com.example.androidtodo.datatypes.Section
 import com.example.androidtodo.datatypes.Task
 
 @Database(entities = [Section::class, Task::class], version = 1)
-abstract class SectionDatabase : RoomDatabase() {
+abstract class CrudDatabase : RoomDatabase() {
 
-    abstract fun getSectionDao(): SectionDAO
+    abstract fun getSectionDao(): DbDAO
 
     companion object {
         @Volatile
-        private var instance: SectionDatabase? = null
+        private var instance: CrudDatabase? = null
         private val LOCK = Any()
 
         operator fun invoke(context: Context) = instance ?: synchronized(LOCK) {
@@ -26,7 +26,7 @@ abstract class SectionDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context) =
             Room.databaseBuilder(
                 context.applicationContext,
-                SectionDatabase::class.java,
+                CrudDatabase::class.java,
                 "tododb"
             )
                 .fallbackToDestructiveMigration()

@@ -10,7 +10,7 @@ import com.example.androidtodo.datatypes.Section
 import com.example.androidtodo.datatypes.Task
 
 @Dao
-interface SectionDAO {
+interface DbDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun createSection(section: Section)
 
@@ -39,7 +39,6 @@ interface SectionDAO {
     suspend fun updateTask1(taskDescription: String, taskDueDate: String, editedAt: String, taskId: Int)
     @Update
     suspend fun updateTask(task: Task)
-
     @Query("DELETE FROM tasks WHERE id = :taskId")
     suspend fun deleteTaskById(taskId: Int): Int
 
