@@ -11,6 +11,8 @@ import com.example.androidtodo.datatypes.Task
 
 @Dao
 interface DbDAO {
+
+//    https://medium.com/@barryalan2633/what-do-insert-update-delete-or-query-do-7e69683f9c68
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun createSection(section: Section)
 

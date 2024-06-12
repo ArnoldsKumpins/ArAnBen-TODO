@@ -18,6 +18,7 @@ import org.joda.time.DateTime
         )
     ]
 )
+// https://stackoverflow.com/questions/47511750/how-to-use-foreign-key-in-room-persistence-library
 @Parcelize
 data class Task(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

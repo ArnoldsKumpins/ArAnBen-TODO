@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorBackground"
-    tools:context=".SectionActivity"
+    tools:context=".TaskActivity"
     android:padding="20dp">
 
     <LinearLayout
@@ -16,7 +16,6 @@
         >
 
 
-        <!-- Back Button -->
         <ImageButton
             android:id="@+id/backButton"
             android:layout_width="wrap_content"
@@ -26,8 +25,8 @@
             android:padding="20dp"
             android:contentDescription="backToSections"
             android:src="@drawable/ic_back_white" />
+<!--        https://developer.android.com/develop/ui/views/components/button-->
 
-        <!-- Title -->
         <TextView
             android:id="@+id/sectionTitleText"
             android:layout_width="0dp"
@@ -41,7 +40,7 @@
             android:layout_marginBottom="30dp"
             />
 
-        <!-- Settings Icon -->
+
         <ImageButton
             android:id="@+id/settingsButton"
             android:layout_width="wrap_content"

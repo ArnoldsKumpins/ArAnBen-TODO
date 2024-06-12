@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:buttonTint="@color/colorText"
         android:layout_gravity="center_vertical"/>
+<!--    https://developer.android.com/develop/ui/views/components/checkbox-->
 
     <ScrollView
         android:layout_width="0dp"

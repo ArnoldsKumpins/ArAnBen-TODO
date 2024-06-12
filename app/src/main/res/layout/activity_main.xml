@@ -5,6 +5,7 @@
     android:background="@color/colorBackground"
     tools:context=".MainActivity"
     android:padding="20dp">
+<!--    https://developer.android.com/develop/ui/views/layout/declaring-layout-->
 
     <TextView
         android:id="@+id/mainTitleText"
@@ -13,7 +14,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="30dp"
-        android:text="Andar TODO Application"
+        android:text="ArAnBen TODO Application"
         android:textColor="#FFFFFF"
         android:textSize="20dp"
         android:textStyle="bold"
@@ -29,6 +30,7 @@
         android:layout_marginTop="20dp"
         android:orientation="vertical"
         />
+<!--    https://developer.android.com/develop/ui/views/layout/recyclerview-->
 
 
     <androidx.appcompat.widget.AppCompatButton
@@ -47,5 +49,7 @@
         android:textColor="@color/colorText"
         android:textSize="16sp"
         />
+
+<!--    https://stackoverflow.com/questions/31858374/android-button-background-color-not-changing-->
 
 </RelativeLayout>

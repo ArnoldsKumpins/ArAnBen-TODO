@@ -1,9 +1,12 @@
 /*
+####################################
    * Android CRUD TODO Application
    *
    * Created BY:
    *    Arnolds Kumpiņš 221RDB157
    *    Andris Martinsons 221RDB203
+   *    Bernhards Arnītis 221RDB128
+####################################
 */
 
 package com.example.androidtodo
@@ -196,6 +199,7 @@ class MainActivity : AppCompatActivity() {
         loadSections()
     }
 
+//    https://stackoverflow.com/questions/52076779/kotlin-custom-dialog-in-android
     private fun showAddSectionDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Add New Section")
@@ -314,6 +318,7 @@ class TaskActivity : AppCompatActivity() {
             finish()
         }
     }
+
 
     private fun showAddTaskDialog(sectionId: Int) {
         val builder = AlertDialog.Builder(this)

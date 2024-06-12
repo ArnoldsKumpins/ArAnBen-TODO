@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Task Description" />
+<!--    https://stackoverflow.com/questions/3766900/how-to-take-input-from-user-in-android-->
 
     <EditText
         android:id="@+id/editTextDueDate"
